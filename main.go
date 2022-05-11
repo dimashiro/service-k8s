@@ -1,16 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
+
+	"go.uber.org/automaxprocs/maxprocs"
 )
 
 var build = "develop"
 
 func main() {
+
+	// set the number of threads available by qoutas
+	if _, err := maxprocs.Set(); err != nil {
+		fmt.Println("maxprocs: %w", err)
+		os.Exit(1)
+	}
 	g := runtime.GOMAXPROCS(0)
 	log.Printf("starting service build %s CPU %d ", build, g)
 	defer log.Println("service ended")
