@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-pod
-  namespace: service-system
+  name: retail-api-pod
+  namespace: retail-api-system
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: service
+      app: retail-api
   template:
     metadata:
       labels:
-        app: service
+        app: retail-api
     spec:
       containers:
-      # service-api container configuration
-      - name: service-api
+      # retail-api container configuration
+      - name: retail-api
         resources:
           limits:
             cpu: "2000m" # Up to 2 full cores

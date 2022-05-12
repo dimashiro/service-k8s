@@ -1,17 +1,17 @@
-FROM golang:1.17 as build_sales-api
+FROM golang:1.17 as build_retail-api
 ENV CGO_ENABLED 0
 ARG BUILD_REF
 
-COPY . /service
+COPY . /src
 
 #build binary
-WORKDIR /service
+WORKDIR /src/app/services/retail-api
 RUN go build -ldflags "-X main.build=${BUILD_REF}"
 
 # Run
 FROM alpine:3.14
 ARG BUILD_DATE
 ARG BUILD_REF
-COPY --from=build_sales-api /service/service /service/service
+COPY --from=build_retail-api /src/app/services/retail-api/retail-api /service/retail-api
 WORKDIR /service
-CMD [ "./service" ]
+CMD [ "./retail-api" ]
