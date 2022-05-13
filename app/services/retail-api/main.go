@@ -6,7 +6,9 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 
+	"github.com/ilyakaznacheev/cleanenv"
 	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -40,6 +42,27 @@ func run(log *zap.SugaredLogger) error {
 		return fmt.Errorf("maxprocs: %w", err)
 	}
 	log.Infow("start", "GOMAXPROCS", runtime.GOMAXPROCS(0))
+
+	//========================================
+	// Config
+	cfg := struct {
+		APIHost         string        `env:"APIHOST" env-default:"0.0.0.0:3000"`
+		DebugHost       string        `env:"DEBUGHOST" env-default:"0.0.0.0:4000"`
+		ReadTimeout     time.Duration `env:"READTIMEOUT" env-default:"5s"`
+		WriteTimeout    time.Duration `env:"WRITETIMEOUT" env-default:"10s"`
+		IdleTimeout     time.Duration `env:"IDLETIMEOUT" env-default:"120s"`
+		ShutdownTimeout time.Duration `env:"SHUTDOWNTIMEOUT" env-default:"20s"`
+	}{}
+
+	err := cleanenv.ReadEnv(&cfg)
+	if err != nil {
+		return fmt.Errorf("loading conf: %w", err)
+	}
+
+	//========================================
+	// App start
+	log.Infow("start", "version", build)
+	defer log.Infow("shutdown")
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
