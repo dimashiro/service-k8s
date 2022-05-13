@@ -7,7 +7,7 @@ help: ## Show this help
 	@printf "\033[33m%s:\033[0m\n" 'Available commands'
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[32m%-11s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-all: retail
+all: retail ## make all	
 
 retail: ## build retail-api image
 	docker build \
@@ -49,12 +49,10 @@ kind-logs: ## show k8s logs
 kind-restart: ## restart retail-api-pod
 	kubectl rollout restart deployment retail-api-pod
 
-kind-update: ## build and restart
-	all kind-load kind-restart
+kind-update: all kind-load kind-restart ## build and restart
 
-kind-update-apply: ## build and apply
-	all kind-load kind-apply
-
+kind-update-apply: all kind-load kind-apply ## build and apply
+	
 kind-describe: ## show details
 	kubectl describe pod -l app=retail-api
 
