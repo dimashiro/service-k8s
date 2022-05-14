@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
 	"time"
 
+	"github.com/dimashiro/service/app/services/retail-api/handlers"
 	"github.com/ilyakaznacheev/cleanenv"
 	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
@@ -58,6 +60,24 @@ func run(log *zap.SugaredLogger) error {
 	if err != nil {
 		return fmt.Errorf("loading conf: %w", err)
 	}
+
+	//========================================
+	// Start Debug Service
+
+	log.Infow("start", "status", "debug router started", "host", cfg.DebugHost)
+
+	// The Debug function returns a mux to listen and serve on for all the debug
+	// related endpoints. This includes the standard library endpoints.
+
+	// Construct the mux for the debug calls.
+	debugMux := handlers.DebugStandardLibraryMux()
+
+	// Start the service listening for debug requests.
+	go func() {
+		if err := http.ListenAndServe(cfg.DebugHost, debugMux); err != nil {
+			log.Errorw("shutdown", "status", "debug router closed", "host", cfg.DebugHost, "ERROR", err)
+		}
+	}()
 
 	//========================================
 	// App start
