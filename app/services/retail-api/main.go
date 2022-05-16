@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -82,11 +83,41 @@ func run(log *zap.SugaredLogger) error {
 	//========================================
 	// App start
 	log.Infow("start", "version", build)
-	defer log.Infow("shutdown")
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
-	<-shutdown
+
+	api := http.Server{
+		Addr:         cfg.APIHost,
+		Handler:      nil,
+		ReadTimeout:  cfg.ReadTimeout,
+		WriteTimeout: cfg.WriteTimeout,
+		IdleTimeout:  cfg.IdleTimeout,
+		ErrorLog:     zap.NewStdLog(log.Desugar()),
+	}
+
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Infow("start", "status", "start router", "host", api.Addr)
+		serverErrors <- api.ListenAndServe()
+	}()
+
+	// Blocking main select
+	select {
+	case err := <-serverErrors:
+		return fmt.Errorf("server error: %w", err)
+	case sig := <-shutdown:
+		log.Infow("shutdown", "status", "start shutdown", "signal", sig)
+		defer log.Infow("shutdown", "status", "finish shutdown", "signal", sig)
+
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+		defer cancel()
+
+		if err := api.Shutdown(ctx); err != nil {
+			api.Close()
+			return fmt.Errorf("could not stop server: %w", err)
+		}
+	}
 
 	return nil
 }
