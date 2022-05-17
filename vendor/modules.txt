@@ -1,6 +1,9 @@
 # github.com/BurntSushi/toml v0.3.1
 ## explicit
 github.com/BurntSushi/toml
+# github.com/dimfeld/httptreemux/v5 v5.4.0
+## explicit; go 1.9
+github.com/dimfeld/httptreemux/v5
 # github.com/ilyakaznacheev/cleanenv v1.2.6
 ## explicit; go 1.13
 github.com/ilyakaznacheev/cleanenv
