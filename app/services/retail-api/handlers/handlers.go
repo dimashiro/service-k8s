@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers/debug/check"
-	"github.com/dimfeld/httptreemux/v5"
+	"github.com/dimashiro/service/foundation/webapp"
 	"go.uber.org/zap"
 )
 
@@ -52,7 +52,7 @@ type APIMuxConfig struct {
 }
 
 // APIMux constructs an http.Handler with all application routes defined.
-func APIMux(cfg APIMuxConfig) *httptreemux.ContextMux {
-	mux := httptreemux.NewContextMux()
-	return mux
+func APIMux(cfg APIMuxConfig) *webapp.App {
+	app := webapp.NewApp(cfg.Shutdown)
+	return app
 }
