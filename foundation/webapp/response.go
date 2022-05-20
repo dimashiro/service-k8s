@@ -9,6 +9,9 @@ import (
 // Respond converts a Go value to JSON and sends it to the client.
 func Respond(ctx context.Context, w http.ResponseWriter, data interface{}, statusCode int) error {
 
+	// set status code for middleware(logger)
+	SetStatusCode(ctx, statusCode)
+
 	if statusCode == http.StatusNoContent {
 		w.WriteHeader(statusCode)
 		return nil

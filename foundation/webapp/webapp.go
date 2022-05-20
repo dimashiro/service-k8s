@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/dimfeld/httptreemux/v5"
 )
@@ -45,6 +46,13 @@ func (a *App) Handle(method string, group string, path string, handler Handler, 
 
 	h := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+
+		v := Values{
+			TraceID: "",
+			Now:     time.Now(),
+		}
+		ctx = context.WithValue(ctx, key, &v)
+
 		if err := handler(ctx, w, r); err != nil {
 			return
 		}
