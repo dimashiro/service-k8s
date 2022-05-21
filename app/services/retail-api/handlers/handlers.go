@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers/debug/check"
+	v1_test "github.com/dimashiro/service/app/services/retail-api/handlers/v1"
 	"github.com/dimashiro/service/buiseness/middleware"
 	"github.com/dimashiro/service/foundation/webapp"
 	"go.uber.org/zap"
@@ -60,5 +61,11 @@ func APIMux(cfg APIMuxConfig) *webapp.App {
 		middleware.Errors(cfg.Log),
 	)
 
+	// test handler for development
+	tV1 := v1_test.Handlers{
+		Log: cfg.Log,
+	}
+
+	app.Handle(http.MethodGet, "v1", "/test", tV1.Test)
 	return app
 }
