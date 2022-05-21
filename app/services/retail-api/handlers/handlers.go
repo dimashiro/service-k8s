@@ -59,6 +59,7 @@ func APIMux(cfg APIMuxConfig) *webapp.App {
 		cfg.Shutdown,
 		middleware.Logger(cfg.Log),
 		middleware.Errors(cfg.Log),
+		middleware.Panics(),
 	)
 
 	// test handler for development
