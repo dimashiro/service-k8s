@@ -54,6 +54,7 @@ func (a *App) Handle(method string, group string, path string, handler Handler, 
 		ctx = context.WithValue(ctx, key, &v)
 
 		if err := handler(ctx, w, r); err != nil {
+			a.SignalShutdown()
 			return
 		}
 

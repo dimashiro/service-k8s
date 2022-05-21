@@ -57,6 +57,8 @@ func APIMux(cfg APIMuxConfig) *webapp.App {
 	app := webapp.NewApp(
 		cfg.Shutdown,
 		middleware.Logger(cfg.Log),
+		middleware.Errors(cfg.Log),
 	)
+
 	return app
 }
