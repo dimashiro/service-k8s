@@ -26,7 +26,7 @@ func (h Handlers) Readiness(w http.ResponseWriter, r *http.Request) {
 		h.Log.Errorw("readiness", "ERROR", err)
 	}
 
-	h.Log.Infow("readiness", "statusCode", http.StatusOK, "method", r.Method, r.URL.Path, "remoteaddr", r.RemoteAddr)
+	h.Log.Infow("readiness", "statusCode", http.StatusOK, "method", r.Method, "path", r.URL.Path, "remoteaddr", r.RemoteAddr)
 }
 
 func (h Handlers) Liveness(w http.ResponseWriter, r *http.Request) {
