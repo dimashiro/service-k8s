@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/dimashiro/service/buiseness/metrics"
 	"github.com/dimashiro/service/foundation/webapp"
 )
 
@@ -22,6 +23,8 @@ func Panics() webapp.Middleware {
 
 					trace := debug.Stack()
 					err = fmt.Errorf("PANIC [%v] TRACE[%s]", rec, string(trace))
+
+					metrics.AddPanics(ctx)
 
 				}
 			}()
