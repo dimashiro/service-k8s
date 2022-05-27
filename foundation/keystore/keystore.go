@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dimashiro/service/vendor/github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type KeyStore struct {
@@ -107,7 +107,7 @@ func (ks *KeyStore) PrivateKey(kid string) (*rsa.PrivateKey, error) {
 
 	privateKey, found := ks.store[kid]
 	if !found {
-		return nil, errors.New("kid lookup failed")
+		return nil, errors.New("kid lookup failed - " + kid)
 	}
 	return privateKey, nil
 }
@@ -118,7 +118,7 @@ func (ks *KeyStore) PublicKey(kid string) (*rsa.PublicKey, error) {
 
 	privateKey, found := ks.store[kid]
 	if !found {
-		return nil, errors.New("kid lookup failed")
+		return nil, errors.New("kid lookup failed - " + kid)
 	}
 	return &privateKey.PublicKey, nil
 }
