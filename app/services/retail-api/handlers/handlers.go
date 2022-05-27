@@ -10,6 +10,7 @@ import (
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers/debug/check"
 	v1_test "github.com/dimashiro/service/app/services/retail-api/handlers/v1"
+	"github.com/dimashiro/service/buiseness/auth"
 	"github.com/dimashiro/service/buiseness/middleware"
 	"github.com/dimashiro/service/foundation/webapp"
 	"go.uber.org/zap"
@@ -51,6 +52,7 @@ func DebugMux(build string, log *zap.SugaredLogger) http.Handler {
 type APIMuxConfig struct {
 	Shutdown chan os.Signal
 	Log      *zap.SugaredLogger
+	Auth     *auth.Auth
 }
 
 // APIMux constructs an http.Handler with all application routes defined.
@@ -69,5 +71,6 @@ func APIMux(cfg APIMuxConfig) *webapp.App {
 	}
 
 	app.Handle(http.MethodGet, "v1", "/test", tV1.Test)
+	app.Handle(http.MethodGet, "v1", "/testauth", tV1.Test, middleware.Authenticate(cfg.Auth), middleware.Authorize("ADMIN"))
 	return app
 }

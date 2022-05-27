@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers"
+	"github.com/dimashiro/service/buiseness/auth"
+	"github.com/dimashiro/service/foundation/keystore"
 	"github.com/ilyakaznacheev/cleanenv"
 	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
@@ -55,6 +57,8 @@ func run(log *zap.SugaredLogger) error {
 		WriteTimeout    time.Duration `env:"WRITETIMEOUT" env-default:"10s"`
 		IdleTimeout     time.Duration `env:"IDLETIMEOUT" env-default:"120s"`
 		ShutdownTimeout time.Duration `env:"SHUTDOWNTIMEOUT" env-default:"20s"`
+		AuthKeysFolder  string        `env:"AUTHKEYSFOLDER" env-default:"deploy/keys/"`
+		AuthActiveKID   string        `env:"AUTHACTIVEKID" env-default:"developmentkeyid"`
 	}{}
 
 	err := cleanenv.ReadEnv(&cfg)
@@ -80,10 +84,29 @@ func run(log *zap.SugaredLogger) error {
 		}
 	}()
 
-	//========================================
+	//__________________________________________________________________________
 	// App start
 	log.Infow("start", "version", build)
 
+	//__________________________________________________________________________
+	// Initialize authentication support
+
+	log.Infow("start", "status", "initializing authentication support")
+
+	// Construct a key store based on the key files stored in
+	// the specified directory.
+	ks, err := keystore.NewFS(os.DirFS(cfg.AuthKeysFolder))
+	if err != nil {
+		return fmt.Errorf("reading keys: %w", err)
+	}
+
+	auth, err := auth.New(cfg.AuthActiveKID, ks)
+	if err != nil {
+		return fmt.Errorf("constructing auth: %w", err)
+	}
+
+	//__________________________________________________________________________
+	// Start service
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
@@ -91,6 +114,7 @@ func run(log *zap.SugaredLogger) error {
 	apiMux := handlers.APIMux(handlers.APIMuxConfig{
 		Shutdown: shutdown,
 		Log:      log,
+		Auth:     auth,
 	})
 
 	api := http.Server{
