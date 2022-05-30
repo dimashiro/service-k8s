@@ -33,6 +33,8 @@ kind-load: ## load docker image
 	kind load docker-image retail-api-amd64:$(VERSION) --name $(KIND_CLUSTER)
 
 kind-apply: ## build k8s pod
+	kustomize build deploy/k8s/kind/database-pod | kubectl apply -f -
+	kubectl wait --namespace=database-system --timeout=120s --for=condition=Available deployment/database-pod
 	kustomize build deploy/k8s/kind/retail-api-pod | kubectl apply -f -
 
 kind-status: ## k8s statuses
@@ -42,6 +44,9 @@ kind-status: ## k8s statuses
 
 kind-status-retail-api: ## k8s status retail-api pod
 	kubectl get pods -o wide --watch
+
+kind-status-db: ## k8s status database pod
+	kubectl get pods -o wide --watch --namespace=database-system
 
 kind-logs: ## show k8s logs
 	kubectl logs -l app=retail-api --all-containers=true -f --tail=100
