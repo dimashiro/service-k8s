@@ -12,6 +12,7 @@ import (
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers"
 	"github.com/dimashiro/service/buiseness/auth"
+	"github.com/dimashiro/service/buiseness/database"
 	"github.com/dimashiro/service/foundation/keystore"
 	"github.com/ilyakaznacheev/cleanenv"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -40,7 +41,7 @@ func main() {
 
 func run(log *zap.SugaredLogger) error {
 
-	//========================================
+	//__________________________________________________________________________
 	// GOMAXPROCS
 	// set the number of threads available by qoutas
 	if _, err := maxprocs.Set(); err != nil {
@@ -48,7 +49,7 @@ func run(log *zap.SugaredLogger) error {
 	}
 	log.Infow("start", "GOMAXPROCS", runtime.GOMAXPROCS(0))
 
-	//========================================
+	//__________________________________________________________________________
 	// Config
 	cfg := struct {
 		APIHost         string        `env:"APIHOST" env-default:"0.0.0.0:3000"`
@@ -59,6 +60,13 @@ func run(log *zap.SugaredLogger) error {
 		ShutdownTimeout time.Duration `env:"SHUTDOWNTIMEOUT" env-default:"20s"`
 		AuthKeysFolder  string        `env:"AUTHKEYSFOLDER" env-default:"deploy/keys/"`
 		AuthActiveKID   string        `env:"AUTHACTIVEKID" env-default:"developmentkeyid"`
+		DBUser          string        `env:"DBUSER" env-default:"postgres"`
+		DBPassword      string        `env:"DBPASSWORD" env-default:"postgres,mask"`
+		DBHost          string        `env:"DBHOST" env-default:"localhost"`
+		DBName          string        `env:"DBNAME" env-default:"postgres"`
+		DBMaxIdleConns  int           `env:"DBMAXIDLECONNS" env-default:"0"`
+		DBMaxOpenConns  int           `env:"DBMAXOPENCONNS" env-default:"0"`
+		DBDisableTLS    bool          `env:"DBDISABLETLS" env-default:"true"`
 	}{}
 
 	err := cleanenv.ReadEnv(&cfg)
@@ -66,7 +74,29 @@ func run(log *zap.SugaredLogger) error {
 		return fmt.Errorf("loading conf: %w", err)
 	}
 
-	//========================================
+	//__________________________________________________________________________
+	// Database
+
+	log.Infow("start", "status", "initializing database support", "host", cfg.DBHost)
+
+	db, err := database.Open(database.Config{
+		User:         cfg.DBUser,
+		Password:     cfg.DBPassword,
+		Host:         cfg.DBHost,
+		Name:         cfg.DBName,
+		MaxIdleConns: cfg.DBMaxIdleConns,
+		MaxOpenConns: cfg.DBMaxOpenConns,
+		DisableTLS:   cfg.DBDisableTLS,
+	})
+	if err != nil {
+		return fmt.Errorf("connecting to db: %w", err)
+	}
+	defer func() {
+		log.Infow("shutdown", "status", "stopping database support", "host", cfg.DBHost)
+		db.Close()
+	}()
+
+	//__________________________________________________________________________
 	// Start Debug Service
 
 	log.Infow("start", "status", "debug router started", "host", cfg.DebugHost)
@@ -75,7 +105,7 @@ func run(log *zap.SugaredLogger) error {
 	// related endpoints. This includes the standard library endpoints.
 
 	// Construct the mux for the debug calls.
-	debugMux := handlers.DebugMux(build, log)
+	debugMux := handlers.DebugMux(build, log, db)
 
 	// Start the service listening for debug requests.
 	go func() {
@@ -115,6 +145,7 @@ func run(log *zap.SugaredLogger) error {
 		Shutdown: shutdown,
 		Log:      log,
 		Auth:     auth,
+		DB:       db,
 	})
 
 	api := http.Server{

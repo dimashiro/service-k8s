@@ -2,10 +2,14 @@
 package check
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/dimashiro/service/buiseness/database"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -13,20 +17,31 @@ import (
 type Handlers struct {
 	Build string
 	Log   *zap.SugaredLogger
+	DB    *sqlx.DB
 }
 
 func (h Handlers) Readiness(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+	defer cancel()
+
+	status := "ok"
+	statusCode := http.StatusOK
+	if err := database.StatusCheck(ctx, h.DB); err != nil {
+		status = "db not ready"
+		statusCode = http.StatusInternalServerError
+	}
+
 	data := struct {
 		Status string `json:"status"`
 	}{
-		Status: "OK",
+		Status: status,
 	}
 
-	if err := response(w, http.StatusOK, data); err != nil {
+	if err := response(w, statusCode, data); err != nil {
 		h.Log.Errorw("readiness", "ERROR", err)
 	}
 
-	h.Log.Infow("readiness", "statusCode", http.StatusOK, "method", r.Method, "path", r.URL.Path, "remoteaddr", r.RemoteAddr)
+	h.Log.Infow("readiness", "statusCode", statusCode, "method", r.Method, "path", r.URL.Path, "remoteaddr", r.RemoteAddr)
 }
 
 func (h Handlers) Liveness(w http.ResponseWriter, r *http.Request) {
