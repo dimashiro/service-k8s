@@ -20,6 +20,11 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       hostNetwork: true
       terminationGracePeriodSeconds: 60
+      initContainers:
+      # retail-api init container configuration
+      - name: init-migrate
+        image: retail-api-image
+        command: ['./admin']
       containers:
       - name: retail-api
         image: retail-api-image

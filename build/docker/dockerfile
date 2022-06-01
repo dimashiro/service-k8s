@@ -5,6 +5,9 @@ ARG BUILD_REF
 COPY . /src
 
 #build binary
+WORKDIR /src/app/tools/admin
+RUN go build -ldflags "-X main.build=${BUILD_REF}"
+#build binary
 WORKDIR /src/app/services/retail-api
 RUN go build -ldflags "-X main.build=${BUILD_REF}"
 
@@ -13,6 +16,7 @@ FROM alpine:3.14
 ARG BUILD_DATE
 ARG BUILD_REF
 COPY --from=build_retail-api /src/deploy/keys/. /service/deploy/keys/.
+COPY --from=build_retail-api /src/app/tools/admin/admin /service/admin
 COPY --from=build_retail-api /src/app/services/retail-api/retail-api /service/retail-api
 WORKDIR /service
 CMD [ "./retail-api" ]
