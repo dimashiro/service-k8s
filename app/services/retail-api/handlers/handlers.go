@@ -10,8 +10,8 @@ import (
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers/debug/check"
 	v1_test "github.com/dimashiro/service/app/services/retail-api/handlers/v1"
-	"github.com/dimashiro/service/buiseness/auth"
-	"github.com/dimashiro/service/buiseness/middleware"
+	"github.com/dimashiro/service/business/auth"
+	"github.com/dimashiro/service/business/middleware"
 	"github.com/dimashiro/service/foundation/webapp"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"

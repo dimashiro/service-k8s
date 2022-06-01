@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 
-	"github.com/dimashiro/service/buiseness/validate"
+	"github.com/dimashiro/service/business/validate"
 	"github.com/dimashiro/service/foundation/webapp"
 	"go.uber.org/zap"
 )

@@ -12,8 +12,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/dimashiro/service/buiseness/data/schema"
-	"github.com/dimashiro/service/buiseness/database"
+	"github.com/dimashiro/service/business/data/schema"
+	"github.com/dimashiro/service/business/database"
 	"github.com/golang-jwt/jwt/v4"
 )
 

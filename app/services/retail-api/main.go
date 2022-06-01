@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers"
-	"github.com/dimashiro/service/buiseness/auth"
-	"github.com/dimashiro/service/buiseness/database"
+	"github.com/dimashiro/service/business/auth"
+	"github.com/dimashiro/service/business/database"
 	"github.com/dimashiro/service/foundation/keystore"
 	"github.com/ilyakaznacheev/cleanenv"
 	"go.uber.org/automaxprocs/maxprocs"
