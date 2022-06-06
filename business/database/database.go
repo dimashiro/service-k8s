@@ -17,7 +17,10 @@ import (
 
 // Set of error variables.
 var (
-	ErrDBNotFound = errors.New("not found")
+	ErrDBNotFound            = errors.New("not found")
+	ErrForbidden             = errors.New("forbidden")
+	ErrInvalidID             = errors.New("invalid id")
+	ErrAuthenticationFailure = errors.New("authentication failure")
 )
 
 type Config struct {
