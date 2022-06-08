@@ -16,7 +16,7 @@ type Container struct {
 	Host string // IP:Port
 }
 
-func StartContainer(t *testing.T, image string, port string, args ...string) (*Container, error) {
+func StartContainer(image string, port string, args ...string) (*Container, error) {
 	arg := []string{"run", "-P", "-d"}
 	arg = append(arg, args...)
 	arg = append(arg, image)
@@ -102,4 +102,13 @@ func extractIPPort(doc []map[string]interface{}, port string) (string, string) {
 	}
 
 	return hostIP, hostPort
+}
+
+// DumpContainerLogs outputs logs from the running docker container.
+func DumpContainerLogs(t *testing.T, id string) {
+	out, err := exec.Command("docker", "logs", id).CombinedOutput()
+	if err != nil {
+		t.Fatalf("could not log container: %v", err)
+	}
+	t.Logf("Logs for %s\n%s:", id, out)
 }
