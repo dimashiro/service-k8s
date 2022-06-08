@@ -76,6 +76,24 @@ func (s Store) Update(ctx context.Context, claims auth.Claims, userID string, uu
 		return fmt.Errorf("updating user userID %s: %w", userID, err)
 	}
 
+	if uu.Name != nil {
+		usr.Name = *uu.Name
+	}
+	if uu.Email != nil {
+		usr.Email = *uu.Email
+	}
+	if uu.Roles != nil {
+		usr.Roles = uu.Roles
+	}
+	if uu.Password != nil {
+		pw, err := bcrypt.GenerateFromPassword([]byte(*uu.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("generating password hash: %w", err)
+		}
+		usr.PasswordHash = pw
+	}
+	usr.DateUpdated = now
+
 	const q = `
 	UPDATE
 		users

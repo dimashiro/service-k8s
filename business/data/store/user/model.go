@@ -1,15 +1,19 @@
 package user
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 type User struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Email        string    `json:"email"`
-	Roles        []string  `json:"roles"`
-	PasswordHash []byte    `json:"-"`
-	DateCreated  time.Time `json:"date_created"`
-	DateUpdated  time.Time `json:"date_updated"`
+	ID           string         `db:"user_id" json:"id"`
+	Name         string         `db:"name" json:"name"`
+	Email        string         `db:"email" json:"email"`
+	Roles        pq.StringArray `db:"roles" json:"roles"`
+	PasswordHash []byte         `db:"password_hash" json:"-"`
+	DateCreated  time.Time      `db:"date_created" json:"date_created"`
+	DateUpdated  time.Time      `db:"date_updated" json:"date_updated"`
 }
 
 type NewUserDTO struct {
