@@ -10,7 +10,9 @@ import (
 
 	"github.com/dimashiro/service/app/services/retail-api/handlers/debug/check"
 	v1_test "github.com/dimashiro/service/app/services/retail-api/handlers/v1"
+	"github.com/dimashiro/service/app/services/retail-api/handlers/v1/usergrp"
 	"github.com/dimashiro/service/business/auth"
+	"github.com/dimashiro/service/business/core/user"
 	"github.com/dimashiro/service/business/middleware"
 	"github.com/dimashiro/service/foundation/webapp"
 	"github.com/jmoiron/sqlx"
@@ -75,5 +77,19 @@ func APIMux(cfg APIMuxConfig) *webapp.App {
 
 	app.Handle(http.MethodGet, "v1", "/test", tV1.Test)
 	app.Handle(http.MethodGet, "v1", "/testauth", tV1.Test, middleware.Authenticate(cfg.Auth), middleware.Authorize("ADMIN"))
+
+	//register user handlers
+	ugh := usergrp.Handlers{
+		User: user.NewCore(cfg.Log, cfg.DB),
+		Auth: cfg.Auth,
+	}
+
+	app.Handle(http.MethodGet, "v1", "/users/token", ugh.Token)
+	app.Handle(http.MethodGet, "v1", "/users/:page/:rows", ugh.GetAll, middleware.Authenticate(cfg.Auth), middleware.Authorize(auth.RoleAdmin))
+	app.Handle(http.MethodGet, "v1", "/users/:id", ugh.GetByID, middleware.Authenticate(cfg.Auth))
+	app.Handle(http.MethodPost, "v1", "/users", ugh.Create, middleware.Authenticate(cfg.Auth), middleware.Authorize(auth.RoleAdmin))
+	app.Handle(http.MethodPut, "v1", "/users/:id", ugh.Update, middleware.Authenticate(cfg.Auth), middleware.Authorize(auth.RoleAdmin))
+	app.Handle(http.MethodDelete, "v1", "/users/:id", ugh.Delete, middleware.Authenticate(cfg.Auth), middleware.Authorize(auth.RoleAdmin))
+
 	return app
 }
