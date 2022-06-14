@@ -201,7 +201,7 @@ func (s Store) GetByID(ctx context.Context, claims auth.Claims, userID string) (
 
 func (s Store) Authenticate(ctx context.Context, now time.Time, email, password string) (auth.Claims, error) {
 	data := struct {
-		Email string `db: "email"`
+		Email string `db:"email"`
 	}{
 		Email: email,
 	}
