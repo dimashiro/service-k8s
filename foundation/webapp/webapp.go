@@ -9,23 +9,29 @@ import (
 	"time"
 
 	"github.com/dimfeld/httptreemux/v5"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // our own Handler
 type Handler func(ctx context.Context, w http.ResponseWriter, r *http.Request) error
 
 type App struct {
-	*httptreemux.ContextMux
+	mux      *httptreemux.ContextMux
+	otmux    http.Handler
 	shutdown chan os.Signal
 	mw       []Middleware
 }
 
 // NewApp creates an App value that handle a set of routes for the application.
 func NewApp(shutdown chan os.Signal, mw ...Middleware) *App {
+	mux := httptreemux.NewContextMux()
+
 	return &App{
-		ContextMux: httptreemux.NewContextMux(),
-		shutdown:   shutdown,
-		mw:         mw,
+		mux:      mux,
+		otmux:    otelhttp.NewHandler(mux, "request"),
+		shutdown: shutdown,
+		mw:       mw,
 	}
 }
 
@@ -47,8 +53,10 @@ func (a *App) Handle(method string, group string, path string, handler Handler, 
 	h := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
+		// Capture the parent request span from the context.
+		span := trace.SpanFromContext(ctx)
 		v := Values{
-			TraceID: "",
+			TraceID: span.SpanContext().TraceID().String(),
 			Now:     time.Now(),
 		}
 		ctx = context.WithValue(ctx, key, &v)
@@ -64,5 +72,9 @@ func (a *App) Handle(method string, group string, path string, handler Handler, 
 	if group != "" {
 		fullPath = "/" + group + path
 	}
-	a.ContextMux.Handle(method, fullPath, h)
+	a.mux.Handle(method, fullPath, h)
+}
+
+func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.otmux.ServeHTTP(w, r)
 }
